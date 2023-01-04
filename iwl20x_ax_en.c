@@ -1,3 +1,4 @@
+/* SPDX-License-Identifier: GPL-2.0 */
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/livepatch.h>
@@ -7,9 +8,13 @@
 #define AX_RUSSIA_ENABLE	0x0c
 #define AX_ENABLE_BITMAP	AX_UKRAINE_ENABLE|AX_RUSSIA_ENABLE
 #define DSM_FUNC_11AX_ENABLEMENT 0x06
+#define MCC "US"
 
 int new_iwl_acpi_get_dsm_u32(struct device *dev, int rev, int func,
 			 const guid_t *guid, u32 *value);
+#ifdef MCC
+int new_iwl_acpi_get_mcc(struct device *dev, char *mcc);
+#endif
 
 const guid_t iwl1_guid = GUID_INIT(0xF21202BF, 0x8F78, 0x4DC6,
 		  0xA5, 0xB3, 0x1F, 0x73,
@@ -19,7 +24,14 @@ static struct klp_func funcs[] = {
 	{
 		.old_name = "iwl_acpi_get_dsm_u32",
 		.new_func = new_iwl_acpi_get_dsm_u32,
-	}, { }
+	},
+	#ifdef MCC
+	{
+		.old_name = "iwl_acpi_get_mcc",
+		.new_func = new_iwl_acpi_get_mcc,
+	},
+	#endif
+	 { }
 };
 
 static struct klp_object objs[] = {
@@ -48,6 +60,14 @@ int new_iwl_acpi_get_dsm_u32(struct device *dev, int rev, int func,
 		rev, func, guid, value);
 }
 
+#ifdef MCC
+int new_iwl_acpi_get_mcc(struct device *dev, char *mcc)
+{
+	strncpy(mcc, MCC, 3);
+	return 0;
+}
+#endif
+
 static int livepatch_init(void)
 {
 	return klp_enable_patch(&patch);
@@ -62,5 +82,5 @@ module_exit(livepatch_exit);
 MODULE_SOFTDEP("post: iwlwifi");
 MODULE_LICENSE("GPL");
 MODULE_INFO(livepatch, "Y");
-
+MODULE_DESCRIPTION("This patch overrides _DSM and WRDD ACPI methods for iwlwifi device");
 
