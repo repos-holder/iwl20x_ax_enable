@@ -8,7 +8,7 @@
 #define AX_RUSSIA_ENABLE	0x0c
 #define AX_ENABLE_BITMAP	AX_UKRAINE_ENABLE|AX_RUSSIA_ENABLE
 #define DSM_FUNC_11AX_ENABLEMENT 0x06
-#define MCC "US"
+#define MCC "ID"
 
 int new_iwl_acpi_get_dsm_u32(struct device *dev, int rev, int func,
 			 const guid_t *guid, u32 *value);
